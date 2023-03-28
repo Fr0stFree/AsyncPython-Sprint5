@@ -1,0 +1,13 @@
+#base
+alembic==1.10.2
+SQLAlchemy==2.0.7
+fastapi==0.95.0
+pydantic==1.10.7
+uvicorn==0.21.1
+asyncpg==0.27.0
+python-dotenv==1.0.0
+
+#tests
+pytest==7.2.2
+pytest-asyncio==0.21.0
+httpx==0.23.3
