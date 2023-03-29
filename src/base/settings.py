@@ -3,6 +3,7 @@ from pydantic import BaseSettings, Field
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = 'Async-Practicum-app'
+    SECRET_KEY: str = Field(..., env='SECRET_KEY')
     DEBUG: bool = Field(..., env='DEBUG')
     SERVER_PORT: int = Field(..., env='SERVER_PORT')
     SERVER_HOST: str = Field(..., env='SERVER_HOST')
