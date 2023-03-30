@@ -34,7 +34,7 @@ build-backend = "poetry.core.masonry.api"
 testpaths = ["tests"]
 pythonpath = "./src"
 addopts = "--cache-clear"
-cache_dir = "./tests/cache"
+cache_dir = "./tests/.pytest_cache"
 asyncio_mode = "auto"
 filterwarnings = "ignore::DeprecationWarning"
 env = [
@@ -44,12 +44,12 @@ env = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "RUF", "PL", "SIM", "ARG", "UP", "N", "I"]
+select = ["E", "F", "RUF", "PL", "SIM", "ARG", "UP", "N"]
 ignore = []
-fixable = ["I"]
-cache-dir = "./dev/null"
+fixable = []
+cache-dir = "./tests/.ruff_cache"
 unfixable = []
 line-length = 120
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 target-version = "py311"
-exclude = [".git", ".ruff_cache", "__pycache__", "cache", "alembic", "__init__.py"]
+exclude = [".git", "*cache*", "alembic", "__init__.py"]
