@@ -1,7 +1,13 @@
 .idea/
+
 __pycache__/
+.pytest_cache/
+.ruff_cache/
+cache/
+
 *.pyc
 .env
-db_data/
+
+data/
 env/
 venv/

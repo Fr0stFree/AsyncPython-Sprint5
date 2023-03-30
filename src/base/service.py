@@ -1,7 +1,7 @@
 from typing import Generic, Type, TypeVar, Sequence
 
 from pydantic import BaseModel
-from sqlalchemy import select, insert, update, delete, exists
+from sqlalchemy import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .database import Base

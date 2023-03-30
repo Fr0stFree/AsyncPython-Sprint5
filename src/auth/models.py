@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
 from sqlalchemy.schema import CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 

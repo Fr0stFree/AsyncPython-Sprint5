@@ -1,13 +1,10 @@
 import asyncio
 import os
-import sys
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker, AsyncEngine
-
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
 from base.settings import settings
 from base.database import Base, get_session
@@ -33,7 +30,7 @@ class TestDB:
             await conn.execute(text(f"ALTER USER {self.DB_USER} WITH SUPERUSER"))
         return create_async_engine(self.TEST_DSN, future=True)
 
-    async def drop(self):
+    async def drop(self) -> None:
         async with self.engine.connect() as conn:
             await conn.execute(text(f"DROP DATABASE {self.DB_NAME}"))
             await conn.execute(text(f"DROP USER {self.DB_USER}"))
@@ -82,6 +79,7 @@ async def fastapi_app(sessionmaker: async_sessionmaker):
 
     app.dependency_overrides[get_session] = get_test_session
     yield app
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")

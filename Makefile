@@ -1,8 +1,14 @@
+run:
+	poetry run python src/main.py
+
+test:
+	poetry run pytest
+
 makemigrations:
-	alembic revision --autogenerate -m "$(m)"
+	poetry run alembic revision --autogenerate -m "$(m)"
 
 migrate:
-	alembic upgrade head
+	poetry run alembic upgrade head
 
 rollback:
-	alembic downgrade -1
+	poetry run alembic downgrade -1

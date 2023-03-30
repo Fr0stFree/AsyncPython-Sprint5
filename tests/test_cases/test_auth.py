@@ -84,7 +84,7 @@ async def test_user_able_to_authenticate(client):
 async def test_user_authentication_will_fail_with_invalid_token(client):
     await client.post(url='auth/sign-up', json={'username': 'test_user', 'password': 'test_password'})
     await client.post(url='auth/sign-in', json={'username': 'test_user', 'password': 'test_password'})
-    response = await client.get(url='auth/me', headers={'Authorization': f'Bearer something_really_wrong'})
+    response = await client.get(url='auth/me', headers={'Authorization': 'Bearer something_really_wrong'})
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {'detail': 'Token is invalid'}
