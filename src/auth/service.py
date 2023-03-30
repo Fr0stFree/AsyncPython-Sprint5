@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from base.service import RepositoryInterface
+
 from .models import User as UserModel
 from .schemas import UserCreate, UserUpdate
 from .security import create_hashed_password

@@ -1,10 +1,11 @@
 from uuid import uuid4
 
 from sqlalchemy import Column, String
-from sqlalchemy.schema import CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.schema import CheckConstraint
 
 from base.database import Base
+
 from .settings import settings
 
 

@@ -1,9 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from base.settings import settings
 from auth.router import router as auth_router
-
+from base.settings import settings
 
 app = FastAPI(title=settings.PROJECT_NAME,
               debug=settings.DEBUG)

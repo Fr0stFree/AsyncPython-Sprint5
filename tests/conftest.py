@@ -4,10 +4,10 @@ import os
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
-from base.settings import settings
 from base.database import Base, get_session
+from base.settings import settings
 from main import app
 
 

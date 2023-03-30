@@ -1,12 +1,13 @@
 from http import HTTPStatus
 
 from fastapi import Depends, HTTPException
-from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from base.database import get_session
+
 from . import schemas
-from .security import verify_password, verify_access_token, oauth2_scheme
+from .security import oauth2_scheme, verify_access_token, verify_password
 from .service import User
 
 

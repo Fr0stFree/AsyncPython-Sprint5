@@ -3,12 +3,12 @@ from http import HTTPStatus
 
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
-from jose import jwt, JWTError
 
 from base.settings import settings as global_settings
-from .settings import settings
 
+from .settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/sign-in")

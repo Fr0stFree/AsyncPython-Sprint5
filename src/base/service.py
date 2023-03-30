@@ -1,7 +1,8 @@
-from typing import Generic, Type, TypeVar, Sequence
+from collections.abc import Sequence
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .database import Base
@@ -31,7 +32,7 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class RepositoryInterface(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: Type[ModelType]):
+    def __init__(self, model: type[ModelType]):
         self._model = model
 
     async def get(self, session: AsyncSession, **options) -> ModelType:

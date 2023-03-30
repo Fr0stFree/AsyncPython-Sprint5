@@ -44,13 +44,10 @@ env = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "RUF", "PL"]
+select = ["E", "F", "RUF", "PL", "SIM", "ARG", "UP", "N", "I"]
 ignore = []
-fixable = [
-    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM",
-    "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL",
-    "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"
-]
+fixable = ["I"]
+cache-dir = "./dev/null"
 unfixable = []
 line-length = 120
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
