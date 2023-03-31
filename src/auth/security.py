@@ -1,5 +1,6 @@
 import time
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -22,8 +23,8 @@ def create_hashed_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(username: str) -> str:
-    payload = {"username": username, "expires": time.time() + settings.TOKEN_EXPIRES_AFTER}
+def create_access_token(user_id: UUID) -> str:
+    payload = {"user_id": user_id, "expires": time.time() + settings.TOKEN_EXPIRES_AFTER}
     token = jwt.encode(payload, key=global_settings.SECRET_KEY, algorithm=settings.HASH_ALGORITHM)
     return token
 

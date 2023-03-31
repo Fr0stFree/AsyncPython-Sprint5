@@ -33,4 +33,4 @@ async def authentication(token: str = Depends(oauth2_scheme)) -> str:
     if not token:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Sign in required")
     decoded_token = verify_access_token(token)
-    return decoded_token["username"]
+    return decoded_token["user_id"]
