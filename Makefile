@@ -1,5 +1,7 @@
+init: migrate run
+
 run:
-	poetry run python src/main.py
+	poetry run uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 test:
 	poetry run pytest

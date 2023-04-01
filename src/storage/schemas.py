@@ -1,10 +1,7 @@
-from uuid import UUID
-from pathlib import PosixPath
 import datetime as dt
-from fastapi import UploadFile, File, Form
-from pydantic import BaseModel, Field
+from uuid import UUID
 
-from .settings import settings
+from pydantic import BaseModel
 
 
 class StoredFileBase(BaseModel):
@@ -12,24 +9,26 @@ class StoredFileBase(BaseModel):
 
 
 class StoredFileCreate(BaseModel):
-    path: PosixPath = Field(..., description="File path")
-    is_private: bool = Field(default=False, description="If true, only the owner can access the file")
+    path: str
     user_id: UUID
     content: bytes
-    name: str = Field(..., description="File name")
-    size: int = Field(..., description="File size in bytes")
+    name: str
+    size: int
+    is_private: bool = False
+    
+
+class StoredFileUpdate(BaseModel):
+    pass
 
 
-class StoredFileUpdate(StoredFileBase):
-    user_id: UUID = Field(exclude=True)
-
-
-class StoredFileCreatedResponse(BaseModel):
+class StoredFileDB(BaseModel):
     id: UUID
     name: str
-    path: PosixPath
+    path: str
+    user_id: UUID
     created_at: dt.datetime
     is_private: bool
+    size: int
 
     class Config:
         orm_mode = True

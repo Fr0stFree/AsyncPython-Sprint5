@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from base.database import Base, get_session
 from base.settings import settings
+from auth.security import create_access_token
+from auth.service import User
+from auth.schemas import UserCreate
 from main import app
 
 
@@ -86,3 +89,22 @@ async def fastapi_app(sessionmaker: async_sessionmaker):
 async def client(fastapi_app):
     async with AsyncClient(app=fastapi_app, base_url=settings.server_address) as client:
         yield client
+
+
+@pytest.fixture(scope="function")
+async def auth_user(fastapi_app, session):
+    user = await User.create(session, schema=UserCreate(username="testtest", password="testtest"))
+    token = create_access_token(user.id)
+    async with AsyncClient(app=fastapi_app, base_url=settings.server_address,
+                           headers={'Authorization': f'Bearer {token}'}) as client:
+        yield client, user
+
+
+
+@pytest.fixture(scope="function")
+async def dummy_file():
+    filepath = os.path.join(os.path.dirname(__file__), "test.txt")
+    with open(filepath, "w") as f:
+        f.write("test")
+    yield filepath
+    os.remove(filepath)

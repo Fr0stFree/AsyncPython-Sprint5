@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,13 +21,13 @@ async def sign_up(user: User = Depends(unique_user)) -> schemas.UserCreatedRespo
 
 @router.post('/sign-in')
 async def sign_in(user: User = Depends(verified_user)) -> schemas.TokenResponse:
-    token = create_access_token(user.username)
+    token = create_access_token(user.id)
     return schemas.TokenResponse(access_token=token, token_type="bearer")
 
 
 @router.get('/me')
-async def get_me(username: str = Depends(authentication),
+async def get_me(user_id: UUID = Depends(authentication),
                  session: AsyncSession = Depends(get_session)) -> schemas.UserCreatedResponse:
-    user = await User.get(session, username=username)
+    user = await User.get(session, id=user_id)
     return user
 

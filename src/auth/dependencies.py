@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -29,8 +30,8 @@ async def verified_user(schema: schemas.UserLogin, session: AsyncSession = Depen
     return user
 
 
-async def authentication(token: str = Depends(oauth2_scheme)) -> str:
+async def authentication(token: str = Depends(oauth2_scheme)) -> UUID:
     if not token:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail="Sign in required")
     decoded_token = verify_access_token(token)
-    return decoded_token["user_id"]
+    return UUID(decoded_token["user_id"])

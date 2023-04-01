@@ -48,14 +48,14 @@ class RepositoryInterface(Generic[ModelType, CreateSchemaType, UpdateSchemaType]
         result = await session.execute(statement)
         return result.scalars().all()
 
-    async def create(self, session: AsyncSession, *, schema: CreateSchemaType) -> ModelType:
+    async def create(self, session: AsyncSession, schema: CreateSchemaType) -> ModelType:
         statement = insert(self._model).values(schema.dict()) \
                                        .returning(self._model)
         result = await session.execute(statement)
         await session.commit()
         return result.scalar_one()
 
-    async def bulk_create(self, session: AsyncSession, *,
+    async def bulk_create(self, session: AsyncSession,
                           schema: Sequence[CreateSchemaType]) -> Sequence[ModelType]:
         statement = insert(self._model).values([row.dict() for row in schema]) \
                                        .returning(self._model)
@@ -63,7 +63,7 @@ class RepositoryInterface(Generic[ModelType, CreateSchemaType, UpdateSchemaType]
         await session.commit()
         return result.scalars().all()
 
-    async def update(self, session: AsyncSession, *,
+    async def update(self, session: AsyncSession,
                      schema: UpdateSchemaType, **options) -> ModelType:
         obj = await self.get(session, **options)
         statement = update(self._model).where(obj.id == self._model.id) \

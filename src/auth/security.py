@@ -24,7 +24,7 @@ def create_hashed_password(password: str) -> str:
 
 
 def create_access_token(user_id: UUID) -> str:
-    payload = {"user_id": user_id, "expires": time.time() + settings.TOKEN_EXPIRES_AFTER}
+    payload = {"user_id": str(user_id), "expires": time.time() + settings.TOKEN_EXPIRES_AFTER}
     token = jwt.encode(payload, key=global_settings.SECRET_KEY, algorithm=settings.HASH_ALGORITHM)
     return token
 
