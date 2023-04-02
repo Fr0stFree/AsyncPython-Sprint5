@@ -2,7 +2,7 @@
 name = "async-python-sprint-5"
 version = "0.1.0"
 description = ""
-authors = ["fr0stfree <me@frostfree.ru>"]
+authors = ["fr0stfree <muzyka.frostfree@yandex.ru>"]
 readme = "README.md"
 packages = [{include = "async_python_sprint_5"}]
 
@@ -19,6 +19,7 @@ python-jose = "^3.3.0"
 bcrypt = "^4.0.1"
 passlib = "^1.7.4"
 python-multipart = "^0.0.6"
+boto3 = "^1.26.104"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -27,6 +28,7 @@ pytest-asyncio = "^0.21.0"
 httpx = "^0.23.3"
 ruff = "^0.0.260"
 pytest-env = "^0.8.1"
+aiofiles = "^23.1.0"
 
 [build-system]
 requires = ["poetry-core"]

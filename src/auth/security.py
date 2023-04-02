@@ -8,8 +8,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from base.settings import settings as global_settings
+from . import constants
 
-from .settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/sign-in")
@@ -24,14 +24,14 @@ def create_hashed_password(password: str) -> str:
 
 
 def create_access_token(user_id: UUID) -> str:
-    payload = {"user_id": str(user_id), "expires": time.time() + settings.TOKEN_EXPIRES_AFTER}
-    token = jwt.encode(payload, key=global_settings.SECRET_KEY, algorithm=settings.HASH_ALGORITHM)
+    payload = {"user_id": str(user_id), "expires": time.time() + constants.TOKEN_EXPIRES_AFTER}
+    token = jwt.encode(payload, key=global_settings.secret_key, algorithm=constants.HASH_ALGORITHM)
     return token
 
 
 def verify_access_token(token: str) -> dict:
     try:
-        payload = jwt.decode(token, key=global_settings.SECRET_KEY, algorithms=[settings.HASH_ALGORITHM])
+        payload = jwt.decode(token, key=global_settings.secret_key, algorithms=[constants.HASH_ALGORITHM])
     except JWTError:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Token is invalid")
 

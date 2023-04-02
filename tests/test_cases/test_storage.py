@@ -1,63 +1,66 @@
 import sys
 from http import HTTPStatus
 
+import aiofiles
+
 from auth.service import User
 from auth.schemas import UserCreate
 from storage.service import StoredFile
 from storage.schemas import StoredFileCreate
+from storage.constants import BUCKET_NAME
 
 
 async def test_client_cannot_upload_files(session, client, dummy_file):
-    with open(dummy_file, 'rb') as f:
-        response = await client.post(url="/storage/upload", data={"dir": "test"}, files={"file": f})
-    files = await StoredFile.filter(session)
-    
-    assert len(files) == 0
-    assert response.status_code == HTTPStatus.UNAUTHORIZED
-
-
-async def test_auth_client_can_upload_files(session, auth_user, dummy_file):
-    client, user = auth_user
-    with open(dummy_file, 'rb') as f:
-        response = await client.post(url="/storage/upload", data={"dir": "test"}, files={"file": f})
+    async with aiofiles.open(dummy_file, mode='rb') as f:
+        response = await client.post(url="/storage/upload", data={"dir": "test"}, files={"file": await f.read()})
         
-    files = await StoredFile.filter(session, user_id=user.id, path="test/test.txt")
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert len(await StoredFile.filter(session)) == 0
+
+
+async def test_auth_client_can_upload_files(session, auth_user, dummy_file, s3_session):
+    client, user = auth_user
     
-    assert len(files) == 1
+    with open(dummy_file, 'rb') as f:
+        response = await client.post(url="/storage/upload", data={"dir": "test"}, files={"file": f})
+    
     assert response.status_code == HTTPStatus.CREATED
     assert response.json()['path'] == 'test/test.txt'
+    
+    db_object = await StoredFile.get(session, user_id=user.id, path="test/test.txt")
+    cloud_object = s3_session.get_object(Bucket=BUCKET_NAME, Key=str(db_object.id))
+    
+    assert cloud_object['ResponseMetadata']['HTTPStatusCode'] == HTTPStatus.OK
+    assert cloud_object['ResponseMetadata']['HTTPHeaders']['content-type'] == 'application/octet-stream'
+    assert cloud_object['Body'].read() == b'test'
 
 
 async def test_auth_client_can_specify_upload_file_options(session, auth_user, dummy_file):
     client, user = auth_user
-    with open(dummy_file, 'rb') as f:
-        response = await client.post(url="/storage/upload", files={"file": f},
+
+    async with aiofiles.open(dummy_file, mode='rb') as f:
+        response = await client.post(url="/storage/upload", files={"file": await f.read()},
                                      data={"dir": "test/my/ass", "name": "my_file.exe", "is_private": True})
         
-    files = await StoredFile.filter(session, user_id=user.id, path="test/my/ass/my_file.exe", is_private=True)
-
-    assert len(files) == 1
     assert response.status_code == HTTPStatus.CREATED
     assert response.json()['path'] == 'test/my/ass/my_file.exe'
     assert response.json()['name'] == 'my_file.exe'
     assert response.json()['is_private']
-    assert response.json()['id'] == str(files[0].id)
+    assert len(await StoredFile.filter(session, user_id=user.id, path="test/my/ass/my_file.exe", is_private=True)) == 1
     
 
 async def test_auth_client_cannot_upload_similar_files(session, auth_user, dummy_file):
     client, user = auth_user
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"))
-    await StoredFile.create(session, file_schema)
-
-    with open(dummy_file, 'rb') as f:
-        response = await client.post(url="/storage/upload", files={"file": f},
-                                     data={"dir": "test", "name": "test.txt"})
-    files = await StoredFile.filter(session, user_id=user.id)
+    await StoredFile.create(session, StoredFileCreate(path="test/test.txt", user_id=user.id,
+                                                      name="test.txt", size=sys.getsizeof(b"test")))
     
-    assert len(files) == 1
+    async with aiofiles.open(dummy_file, mode='rb') as f:
+        response = await client.post(url="/storage/upload", files={"file": await f.read()},
+                                     data={"dir": "test", "name": "test.txt"})
+    
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json()['detail'] == 'File already exists'
+    assert len(await StoredFile.filter(session, user_id=user.id)) == 1
     
 
 async def test_client_cannot_see_storage(client):
@@ -69,6 +72,7 @@ async def test_client_cannot_see_storage(client):
 
 async def test_auth_client_can_access_storage(auth_user):
     client, user = auth_user
+
     response = await client.get(url="/storage/")
     
     assert response.status_code == HTTPStatus.OK
@@ -77,14 +81,15 @@ async def test_auth_client_can_access_storage(auth_user):
     
 async def test_auth_client_can_see_storage_files(session, auth_user):
     client, user = auth_user
-    file_schema_1 = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
+    file_schema_1 = StoredFileCreate(path="test/test.txt", user_id=user.id,
                                      name="test.txt", size=sys.getsizeof(b"test"))
-    file_schema_2 = StoredFileCreate(path="test/test2.txt", user_id=user.id, content=b"test_2",
+    file_schema_2 = StoredFileCreate(path="test/test2.txt", user_id=user.id,
                                      name="test2.txt", size=sys.getsizeof(b"test_2"))
-    file_schema_3 = StoredFileCreate(path="test/test3.txt", user_id=user.id, content=b"test_huest",
+    file_schema_3 = StoredFileCreate(path="test/test3.txt", user_id=user.id,
                                      name="test3.txt", size=sys.getsizeof(b"test_huest"))
     schemas = [file_schema_1, file_schema_2, file_schema_3]
     [await StoredFile.create(session, schema) for schema in schemas]
+
     response = await client.get(url="/storage/")
     
     assert response.status_code == HTTPStatus.OK
@@ -97,9 +102,8 @@ async def test_auth_client_can_see_storage_files(session, auth_user):
 
 async def test_client_cannot_download_files(session, client, auth_user):
     auth_client, user = auth_user
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"))
-    file = await StoredFile.create(session, file_schema)
+    file = await StoredFile.create(session, StoredFileCreate(path="test/test.txt", user_id=user.id,
+                                                             name="test.txt", size=sys.getsizeof(b"test")))
     
     response = await client.get(url="/storage/download", params={"path": file.path})
     
@@ -109,9 +113,8 @@ async def test_client_cannot_download_files(session, client, auth_user):
 
 async def test_auth_client_cannot_download_non_existing_files(session, auth_user):
     client, user = auth_user
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"))
-    await StoredFile.create(session, file_schema)
+    await StoredFile.create(session, StoredFileCreate(path="test/test.txt", user_id=user.id,
+                                                      name="test.txt", size=sys.getsizeof(b"test")))
     
     response = await client.get(url="/storage/download", params={"path": "something_wierd"})
     
@@ -119,26 +122,26 @@ async def test_auth_client_cannot_download_non_existing_files(session, auth_user
     assert response.json() == {'detail': 'File not found'}
 
 
-async def test_auth_client_can_download_by_path(session, auth_user):
+async def test_auth_client_can_download_by_path(auth_user, dummy_file):
     client, user = auth_user
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"))
-    file = await StoredFile.create(session, file_schema)
+    async with aiofiles.open(dummy_file, mode='rb') as f:
+        await client.post(url="/storage/upload", files={"file": await f.read()},
+                          data={"dir": "test/my/ass", "name": "my_file.exe"})
     
-    response = await client.get(url="/storage/download", params={"path": file.path})
+    response = await client.get(url="/storage/download", params={"path": "test/my/ass/my_file.exe"})
     
     assert response.status_code == HTTPStatus.OK
     assert response.content == b'test'
     assert response.headers['content-type'] == 'application/octet-stream'
 
 
-async def test_auth_client_can_download_by_id(session, auth_user):
+async def test_auth_client_can_download_by_id(session, auth_user, dummy_file):
     client, user = auth_user
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"))
-    file = await StoredFile.create(session, file_schema)
-    
-    response = await client.get(url="/storage/download", params={"id": str(file.id)})
+    async with aiofiles.open(dummy_file, mode='rb') as f:
+        response = await client.post(url="/storage/upload", files={"file": await f.read()},
+                                     data={"dir": "test/my/ass", "name": "my_file.exe"})
+        
+    response = await client.get(url="/storage/download", params={"id": response.json()['id']})
     
     assert response.status_code == HTTPStatus.OK
     assert response.content == b'test'
@@ -148,8 +151,8 @@ async def test_auth_client_can_download_by_id(session, auth_user):
 async def test_auth_clients_cannot_download_private_files(session, auth_user):
     client, user = auth_user
     another_user = await User.create(session, schema=UserCreate(username="super_boy", password="super_man"))
-    file_schema = StoredFileCreate(path="test/test.txt", user_id=another_user.id, content=b"test",
-                                   name="test.txt", size=sys.getsizeof(b"test"), is_private=True)
+    file_schema = StoredFileCreate(path="test/test.txt", user_id=another_user.id, name="test.txt",
+                                   size=sys.getsizeof(b"test"), is_private=True)
     private_file = await StoredFile.create(session, file_schema)
     
     response = await client.get(url="/storage/download", params={"path": private_file.path})

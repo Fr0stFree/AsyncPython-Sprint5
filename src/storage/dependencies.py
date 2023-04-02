@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from base.database import get_session
 from auth.dependencies import authentication
 from .service import StoredFile
-from .settings import settings
+from . import constants
 
 
 async def validated_file(user_id: UUID = Depends(authentication),
@@ -20,9 +20,9 @@ async def validated_file(user_id: UUID = Depends(authentication),
     if name is not None:
         file.filename = name
         
-    if file.size > settings.MAX_FILE_SIZE:
+    if file.size > constants.MAX_FILE_SIZE:
         raise HTTPException(status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-                            detail=f'File size is too large. Max size is {settings.MAX_FILE_SIZE} bytes.')
+                            detail=f'File size is too large. Max size is {constants.MAX_FILE_SIZE} bytes.')
 
     path = str(pathlib.PosixPath(dir, file.filename))
     if await StoredFile.filter(session, user_id=user_id, path=path):

@@ -1,15 +1,12 @@
 from uuid import uuid4
 import datetime as dt
 
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, LargeBinary, Integer
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 
 from base.database import Base
-
-
-from .settings import settings
+from . import constants
 
 
 class StoredFile(Base):
@@ -19,9 +16,7 @@ class StoredFile(Base):
     path = Column(String, unique=True, nullable=False)
     user_id = Column(ForeignKey('user.id'), nullable=False)
     user = relationship('User', back_populates='files')
-    content = Column(LargeBinary, CheckConstraint(f'length(content) < {settings.MAX_FILE_SIZE}'), nullable=False)
-    name = Column(String(settings.MAX_FILE_NAME_LENGTH),
-                  CheckConstraint(f'length(name) > {settings.MIN_FILE_NAME_LENGTH}'), nullable=False)
+    name = Column(String(constants.MAX_FILE_NAME_LENGTH), nullable=False)
     created_at = Column(DateTime, nullable=False, default=dt.datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
     size = Column(Integer, nullable=False)

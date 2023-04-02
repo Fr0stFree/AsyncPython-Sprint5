@@ -2,31 +2,31 @@ from pydantic import BaseSettings, Field
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = 'Async-Practicum-app'
-    SECRET_KEY: str = Field(..., env='SECRET_KEY')
-    DEBUG: bool = Field(..., env='DEBUG')
-    SERVER_PORT: int = Field(..., env='SERVER_PORT')
-    SERVER_HOST: str = Field(..., env='SERVER_HOST')
+    project_name: str = 'Async-Practicum-app'
+    secret_key: str = Field(..., env='SECRET_KEY')
+    debug: bool = Field(..., env='DEBUG')
+    server_port: int = Field(..., env='SERVER_PORT')
+    server_host: str = Field(..., env='SERVER_HOST')
     
-    DB_HOST: str = Field(..., env='POSTGRES_HOST')
-    DB_PORT: int = Field(..., env='POSTGRES_PORT')
-    DB_NAME: str = Field(..., env='POSTGRES_DB')
-    DB_PASSWORD: str = Field(..., env='POSTGRES_PASSWORD')
-    DB_USER: str = Field(..., env='POSTGRES_USER')
+    db_host: str = Field(..., env='POSTGRES_HOST')
+    db_port: int = Field(..., env='POSTGRES_PORT')
+    db_name: str = Field(..., env='POSTGRES_DB')
+    db_password: str = Field(..., env='POSTGRES_PASSWORD')
+    db_user: str = Field(..., env='POSTGRES_USER')
     
     @property
     def database_dsn(self) -> str:
         return 'postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}'.format(
-            db=self.DB_NAME,
-            user=self.DB_USER,
-            password=self.DB_PASSWORD,
-            host=self.DB_HOST,
-            port=self.DB_PORT,
+            db=self.db_name,
+            user=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
         )
     
     @property
     def server_address(self) -> str:
-        return f'http://{self.SERVER_HOST}:{self.SERVER_PORT}'
+        return f'http://{self.server_host}:{self.server_port}'
     
     class Config:
         env_file = '.env'

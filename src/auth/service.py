@@ -8,9 +8,9 @@ from .security import create_hashed_password
 
 
 class UserRepository(RepositoryInterface[UserModel, UserCreate, UserUpdate]):
-    async def create(self, session: AsyncSession, *, schema: UserCreate) -> UserModel:
+    async def create(self, session: AsyncSession, schema: UserCreate) -> UserModel:
         schema.password = create_hashed_password(schema.password)
-        return await super().create(session, schema=schema)
+        return await super().create(session, schema)
     
 
 User = UserRepository(UserModel)

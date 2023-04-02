@@ -3,7 +3,6 @@ from http import HTTPStatus
 from sqlalchemy import text
 
 
-
 async def test_db_up_and_running(session):
     result = await session.execute(text("SELECT 1"))
     assert result.scalar_one() == 1

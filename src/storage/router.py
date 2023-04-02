@@ -2,7 +2,7 @@ from http import HTTPStatus
 from uuid import UUID
 import io
 
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,12 +17,10 @@ router = APIRouter(prefix="/storage", tags=["storage"], dependencies=[Depends(au
 
 
 @router.post('/upload', status_code=HTTPStatus.CREATED)
-async def upload_file(file: UploadFile = Depends(validated_file),
+async def upload_file(background_tasks: BackgroundTasks,
+                      file: UploadFile = Depends(validated_file),
                       session: AsyncSession = Depends(get_session)) -> schemas.StoredFileDB:
-    content = await file.read()
-    create_schema = schemas.StoredFileCreate(user_id=file.user_id, path=file.path, content=content,
-                                             name=file.filename, size=file.size, is_private=file.is_private)
-    stored_file = await StoredFile.create(session, schema=create_schema)
+    stored_file = await StoredFile.upload(session, file, background_tasks)
     return stored_file
 
 
@@ -35,4 +33,5 @@ async def list_files(user_id: UUID = Depends(authentication),
 
 @router.get('/download')
 async def download_file(stored_file: StoredFile = Depends(accessable_file)) -> StreamingResponse:
-    return StreamingResponse(io.BytesIO(stored_file.content), media_type='application/octet-stream')
+    content = await StoredFile.download(stored_file)
+    return StreamingResponse(io.BytesIO(content), media_type='application/octet-stream')

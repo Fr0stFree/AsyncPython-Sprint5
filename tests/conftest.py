@@ -5,9 +5,11 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+import aiofiles
 
 from base.database import Base, get_session
 from base.settings import settings
+from storage.client import get_client_session
 from auth.security import create_access_token
 from auth.service import User
 from auth.schemas import UserCreate
@@ -18,7 +20,7 @@ class TestDB:
     DB_NAME = os.getenv("TEST_DB_NAME")
     DB_USER = os.getenv("TEST_DB_USER")
     DB_PASSWORD = os.getenv("TEST_DB_PASSWORD")
-    TEST_DSN = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{DB_NAME}"
+    TEST_DSN = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{settings.db_host}:{settings.db_port}/{DB_NAME}"
 
     def __init__(self):
         self.engine = create_async_engine(settings.database_dsn, future=True, isolation_level="AUTOCOMMIT")
@@ -100,11 +102,17 @@ async def auth_user(fastapi_app, session):
         yield client, user
 
 
-
 @pytest.fixture(scope="function")
 async def dummy_file():
     filepath = os.path.join(os.path.dirname(__file__), "test.txt")
-    with open(filepath, "w") as f:
-        f.write("test")
+    async with aiofiles.open(filepath, mode='w') as f:
+        await f.write("test")
     yield filepath
     os.remove(filepath)
+
+
+@pytest.fixture(scope="session")
+async def s3_session():
+    session = get_client_session()
+    yield session
+    session.close()

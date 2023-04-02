@@ -11,7 +11,6 @@ class StoredFileBase(BaseModel):
 class StoredFileCreate(BaseModel):
     path: str
     user_id: UUID
-    content: bytes
     name: str
     size: int
     is_private: bool = False

@@ -1,5 +1,4 @@
 .idea/
-
 __pycache__/
 .pytest_cache/
 tests/.ruff_cache/
@@ -11,3 +10,5 @@ cache/
 data/
 env/
 venv/
+
+docker-compose.dev.yml

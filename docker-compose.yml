@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   db:
-    image: postgres:latest
+    image: postgres:15.2-alpine
     container_name: async_db
     restart: always
     env_file:
